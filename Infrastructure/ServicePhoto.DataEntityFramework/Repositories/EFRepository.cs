@@ -32,6 +32,13 @@ namespace ServicePhoto.DataEntityFramework.Repositories
             _dbContext.Entry(entity).State = EntityState.Modified;
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
+        public virtual async Task DeleteRange(IEnumerable<TEntity> entities, CancellationToken cancellationToken)
+        {
+            Entities.RemoveRange(entities);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await Task.CompletedTask;
+        }
+
         public virtual async Task Delete(TEntity entity, CancellationToken cancellationToken)
         {
             Entities.Remove(entity);

@@ -9,9 +9,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentatio
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{1141BBDF-F4F0-4847-BABF-93A449FEB7F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicePhoto.DataEntityFramework", "Infrastructure\ServicePhoto.DataEntityFramework\ServicePhoto.DataEntityFramework.csproj", "{4D8C7658-7546-4885-B741-FA44A8663980}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServicePhoto.DataEntityFramework", "Infrastructure\ServicePhoto.DataEntityFramework\ServicePhoto.DataEntityFramework.csproj", "{4D8C7658-7546-4885-B741-FA44A8663980}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicePhoto.Domain", "ServicePhoto.Domain\ServicePhoto.Domain.csproj", "{0DD60254-8A05-4FB1-AF45-674F36BCA272}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServicePhoto.Domain", "ServicePhoto.Domain\ServicePhoto.Domain.csproj", "{0DD60254-8A05-4FB1-AF45-674F36BCA272}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -8,7 +8,7 @@ namespace ServicePhoto.WebApi.Models.Responses
         [Required]
         public Guid Id { get; init; }
         [Required]
-        public string Path { get; set; }
+        public string FilePath { get; set; }
         [Required]
         public Guid AccountId { get; init; }
         [Required]

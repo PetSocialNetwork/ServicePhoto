@@ -9,9 +9,9 @@ namespace ServicePhoto.DataEntityFramework.Repositories
     {
         public PetPhotoRepository(AppDbContext appDbContext) : base(appDbContext) { }
 
-        public async Task<PetPhoto> GetMainPhotoAsync(CancellationToken cancellationToken)
+        public async Task<PetPhoto?> FindMainPhotoAsync(Guid petId, Guid accountId, CancellationToken cancellationToken)
         {
-            return await Entities.SingleAsync(it => it.IsMainPetPhoto, cancellationToken);
+            return await Entities.SingleOrDefaultAsync(it => it.IsMainPetPhoto && it.AccountId == accountId && it.PetId == petId, cancellationToken);
         }
 
         public async Task<PetPhoto?> FindPetPhotoAsync(Guid id, CancellationToken cancellationToken)
@@ -19,9 +19,14 @@ namespace ServicePhoto.DataEntityFramework.Repositories
             return await Entities.SingleOrDefaultAsync(it => it.Id == id, cancellationToken);
         }
 
-        public async IAsyncEnumerable<PetPhoto> BySearch(Guid accountId, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async Task<IEnumerable<PetPhoto>> GetPetPhotosByAccountIdAsync(Guid petId, Guid accountId, CancellationToken cancellationToken)
         {
-            var query = Entities.Where(c => c.AccountId == accountId).AsQueryable();
+            return await Entities.Where(it => it.AccountId == accountId && it.PetId == petId).ToListAsync(cancellationToken);
+        }
+
+        public async IAsyncEnumerable<PetPhoto> BySearch(Guid petId, Guid accountId, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var query = Entities.Where(c => c.AccountId == accountId && c.PetId ==petId).AsQueryable();
             await foreach (var photo in query.AsAsyncEnumerable().WithCancellation(cancellationToken))
                 yield return photo;
         }

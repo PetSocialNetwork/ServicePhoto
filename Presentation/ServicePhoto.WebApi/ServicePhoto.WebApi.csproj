@@ -21,4 +21,8 @@
     <ProjectReference Include="..\..\ServicePhoto.Domain\ServicePhoto.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\Images\" />
+  </ItemGroup>
+
 </Project>

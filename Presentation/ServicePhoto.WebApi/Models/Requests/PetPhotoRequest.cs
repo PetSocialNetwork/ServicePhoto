@@ -6,7 +6,9 @@ namespace ServicePhoto.WebApi.Models.Requests
     public class PetPhotoRequest
     {
         [Required]
-        public string Path { get; set; }
+        public IFormFile File { get; set; }
+        [Required]
+        public Guid PetId { get; init; }
         [Required]
         public Guid AccountId { get; init; }
     }
