@@ -8,6 +8,7 @@ namespace ServicePhoto.Domain.Services
     public class PetPhotoService
     {
         private readonly IPetPhotoRepository _photoRepository;
+
         public PetPhotoService(IPetPhotoRepository photoRepository)
         {
             _photoRepository = photoRepository
@@ -21,8 +22,7 @@ namespace ServicePhoto.Domain.Services
             var existedPhoto = await FindMainPetPhotoAsync(photo.PetId, photo.AccountId, cancellationToken);
             if (existedPhoto != null)
             {
-                existedPhoto.IsMainPetPhoto = false;
-                await _photoRepository.Update(existedPhoto, cancellationToken);
+                await _photoRepository.Delete(existedPhoto, cancellationToken);
             }
 
             photo.IsMainPetPhoto = true;
@@ -57,32 +57,37 @@ namespace ServicePhoto.Domain.Services
             {
                 foreach (var photo in photosToDelete)
                 {
-                    if (File.Exists(photo.FilePath))
+                    Uri uri = new Uri(photo.FilePath);
+                    string relativePath = uri.AbsolutePath.TrimStart('/'); //Remove the first / from path
+                    string filePath = "";
+
+                    if (File.Exists(filePath))
                     {
-                        File.Delete(photo.FilePath);
+                        File.Delete(filePath);
                     }
                 }
                 await _photoRepository.DeleteRange(photosToDelete, cancellationToken);
             }
         }
 
-        public async Task<PetPhoto> SetMainPetPhotoAsync(Guid photoId, Guid accountId, CancellationToken cancellationToken)
+        public async Task<PetPhoto> SetMainPetPhotoAsync(Guid petId, Guid accountId, Guid photoId, CancellationToken cancellationToken)
         {
-            return null;
-            ////TODO: Транзакция
-            ////ДОРАБОТАТЬ
-            //var photo = await FindMainPetPhotoAsync(accountId, cancellationToken);
-            //photo.IsMainPetPhoto = false;
-            //await _photoRepository.Update(photo, cancellationToken);
-            //var existedPhoto = await _photoRepository.GetById(photoId, cancellationToken);
+            //TODO: Транзакция
+            var photo = await FindMainPetPhotoAsync(petId, accountId, cancellationToken);
+            if (photo is not null)
+            {
+                photo.IsMainPetPhoto = false;
+                await _photoRepository.Update(photo, cancellationToken);         
+            }
 
-            //if (existedPhoto is null)
-            //{
-            //    throw new PhotoNotFoundException("Фотографии с таким идентификатором не существует.");
-            //}
-            //existedPhoto.IsMainPetPhoto = true;
-            //await _photoRepository.Update(existedPhoto, cancellationToken);
-            //return existedPhoto;
+            var existedPhoto = await _photoRepository.GetById(photoId, cancellationToken);
+            if (existedPhoto is null)
+            {
+                throw new PhotoNotFoundException("Фотографии с таким идентификатором не существует.");
+            }
+            existedPhoto.IsMainPetPhoto = true;
+            await _photoRepository.Update(existedPhoto, cancellationToken);
+            return existedPhoto;
         }
 
         public async IAsyncEnumerable<PetPhoto>? BySearchPetPhotosAsync(Guid petId, Guid accountId, [EnumeratorCancellation] CancellationToken cancellationToken)
