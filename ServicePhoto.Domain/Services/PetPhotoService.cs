@@ -76,8 +76,7 @@ namespace ServicePhoto.Domain.Services
             var photo = await FindMainPetPhotoAsync(petId, accountId, cancellationToken);
             if (photo is not null)
             {
-                photo.IsMainPetPhoto = false;
-                await _photoRepository.Update(photo, cancellationToken);         
+                await _photoRepository.Delete(photo, cancellationToken);
             }
 
             var existedPhoto = await _photoRepository.GetById(photoId, cancellationToken);

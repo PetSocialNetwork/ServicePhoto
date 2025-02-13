@@ -24,7 +24,7 @@ namespace ServicePhoto.WebApi.Controllers
         //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("[action]")]
         public async Task<ActionResult<PersonalPhotoResponse>> AddPersonalPhotoAsync
-            ([FromForm] Guid accountId,
+            ([FromForm] Guid profileId,
             IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
@@ -50,7 +50,7 @@ namespace ServicePhoto.WebApi.Controllers
             var relativePath = $"/images/{fileName}";
             var fullUrl = $"{baseUrl}{relativePath}";
 
-            var photo = new PersonalPhoto(Guid.NewGuid(), accountId, fullUrl);
+            var photo = new PersonalPhoto(Guid.NewGuid(), profileId, fullUrl);
             var response = await _personalPhotoService.AddPersonalPhotoAsync(photo, cancellationToken);
             return _mapper.Map<PersonalPhotoResponse>(response);
         }
@@ -60,7 +60,7 @@ namespace ServicePhoto.WebApi.Controllers
         //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("[action]")]
         public async Task<ActionResult<PersonalPhotoResponse>> AddAndSetPersonalPhotoAsync
-            ([FromForm] Guid accountId,
+            ([FromForm] Guid profileId,
             IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
@@ -86,7 +86,7 @@ namespace ServicePhoto.WebApi.Controllers
             var baseUrl = $"https://localhost:7216";
             var relativePath = $"images/{fileName}";
             var fullUrl = $"{baseUrl}/{relativePath}";
-            var photo = new PersonalPhoto(Guid.NewGuid(), accountId, fullUrl);
+            var photo = new PersonalPhoto(Guid.NewGuid(), profileId, fullUrl);
             var response = await _personalPhotoService.AddAndSetPersonalPhotoAsync(photo, cancellationToken);
             return _mapper.Map<PersonalPhotoResponse>(response);
 

@@ -10,22 +10,22 @@ namespace ServicePhoto.DataEntityFramework.Repositories
         public PersonalPhotoRepository(AppDbContext appDbContext) : base(appDbContext) {}
         public async Task<PersonalPhoto?> FindMainPersonalPhotoAsync(Guid profileId, CancellationToken cancellationToken)
         {
-            return await Entities.SingleOrDefaultAsync(it => it.Id == profileId && it.IsMainPersonalPhoto == true, cancellationToken);
+            return await Entities.SingleOrDefaultAsync(it => it.ProfileId == profileId && it.IsMainPersonalPhoto == true, cancellationToken);
         }
 
-        public async Task<PersonalPhoto?> FindPersonalPhotoAsync(Guid profileId, CancellationToken cancellationToken)
+        public async Task<PersonalPhoto?> FindPersonalPhotoAsync(Guid photoId, CancellationToken cancellationToken)
         {
-            return await Entities.SingleOrDefaultAsync(it => it.Id == profileId, cancellationToken);
+            return await Entities.SingleOrDefaultAsync(it => it.Id == photoId, cancellationToken);
         }
 
         public async Task<IEnumerable<PersonalPhoto>> GetPersonalPhotosAsync(Guid profileId, CancellationToken cancellationToken)
         {
-            return await Entities.Where(it => it.Id == profileId).ToListAsync(cancellationToken);
+            return await Entities.Where(it => it.ProfileId == profileId).ToListAsync(cancellationToken);
         }
 
         public async IAsyncEnumerable<PersonalPhoto> BySearch(Guid profileId, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var query = Entities.Where(c => c.Id == profileId && c.IsMainPersonalPhoto == false).AsQueryable();
+            var query = Entities.Where(c => c.ProfileId == profileId && c.IsMainPersonalPhoto == false).AsQueryable();
             await foreach (var photo in query.AsAsyncEnumerable().WithCancellation(cancellationToken))
                 yield return photo;
         }

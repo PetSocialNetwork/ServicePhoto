@@ -18,7 +18,7 @@ namespace ServicePhoto.Domain.Services
         {
             ArgumentNullException.ThrowIfNull(photo);
 
-            var existedPhoto = await FindMainPersonalPhotoAsync(photo.Id, cancellationToken);
+            var existedPhoto = await FindMainPersonalPhotoAsync(photo.ProfileId, cancellationToken);
             if (existedPhoto != null)
             {
                 await _personalPhotoRepository.Delete(existedPhoto, cancellationToken);
@@ -62,8 +62,7 @@ namespace ServicePhoto.Domain.Services
 
         public async Task<PersonalPhoto?> FindMainPersonalPhotoAsync(Guid profileId, CancellationToken cancellationToken)
         {
-            var photo = await _personalPhotoRepository.FindMainPersonalPhotoAsync(profileId, cancellationToken);
-            return photo;
+            return await _personalPhotoRepository.FindMainPersonalPhotoAsync(profileId, cancellationToken);
         }
 
         public async IAsyncEnumerable<PersonalPhoto>? BySearchPersonalPhotosAsync(Guid profileId, [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -78,8 +77,7 @@ namespace ServicePhoto.Domain.Services
             var photo = await FindMainPersonalPhotoAsync(profileId, cancellationToken);
             if (photo is not null)
             {
-                photo.IsMainPersonalPhoto = false;
-                await _personalPhotoRepository.Update(photo, cancellationToken);
+                await _personalPhotoRepository.Delete(photo, cancellationToken);
             }
 
             var existedPhoto = await _personalPhotoRepository.GetById(photoId, cancellationToken);
