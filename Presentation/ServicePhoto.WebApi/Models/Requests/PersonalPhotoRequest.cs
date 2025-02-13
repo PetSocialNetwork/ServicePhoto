@@ -6,8 +6,8 @@ namespace ServicePhoto.WebApi.Models.Requests
     public class PersonalPhotoRequest
     {
         [Required]
-        public string Path { get; set; }
+        public Guid PhotoId { get; set; }
         [Required]
-        public Guid AccountId { get; init; }
+        public Guid ProfileId { get; init; }
     }
 }

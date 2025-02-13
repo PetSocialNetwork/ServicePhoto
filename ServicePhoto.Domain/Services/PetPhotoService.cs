@@ -51,14 +51,14 @@ namespace ServicePhoto.Domain.Services
 
         public async Task DeleteAllPetPhotosAsync(Guid petId, Guid accountId, CancellationToken cancellationToken)
         {
-            var photosToDelete = await _photoRepository.GetPetPhotosByAccountIdAsync(petId, accountId, cancellationToken); ;
+            var photosToDelete = await _photoRepository.GetPetPhotosByAccountIdAsync(petId, accountId, cancellationToken);
 
             if (photosToDelete.Any())
             {
                 foreach (var photo in photosToDelete)
                 {
                     Uri uri = new Uri(photo.FilePath);
-                    string relativePath = uri.AbsolutePath.TrimStart('/'); //Remove the first / from path
+                    string relativePath = uri.AbsolutePath.TrimStart('/');
                     string filePath = "";
 
                     if (File.Exists(filePath))

@@ -4,8 +4,9 @@ namespace ServicePhoto.Domain.Interfaces
 {
     public interface IPersonalPhotoRepository : IRepositoryEF<PersonalPhoto>
     {
-        Task<PersonalPhoto?> FindPersonalPhotoAsync(Guid id, CancellationToken cancellationToken);
-        Task<PersonalPhoto> GetMainPhotoAsync(CancellationToken cancellationToken);
-        IAsyncEnumerable<PersonalPhoto> BySearch(Guid accountId, CancellationToken cancellationToken);
+        Task<PersonalPhoto?> FindMainPersonalPhotoAsync(Guid profileId, CancellationToken cancellationToken);
+        Task<PersonalPhoto?> FindPersonalPhotoAsync(Guid profileId, CancellationToken cancellationToken);
+        IAsyncEnumerable<PersonalPhoto> BySearch(Guid profileId, CancellationToken cancellationToken);
+        Task<IEnumerable<PersonalPhoto>> GetPersonalPhotosAsync(Guid profileId, CancellationToken cancellationToken);
     }
 }

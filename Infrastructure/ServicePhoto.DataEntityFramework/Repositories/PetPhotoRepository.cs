@@ -26,7 +26,7 @@ namespace ServicePhoto.DataEntityFramework.Repositories
 
         public async IAsyncEnumerable<PetPhoto> BySearch(Guid petId, Guid accountId, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var query = Entities.Where(c => c.AccountId == accountId && c.PetId ==petId).AsQueryable();
+            var query = Entities.Where(c => c.AccountId == accountId && c.PetId ==petId && c.IsMainPetPhoto == false).AsQueryable();
             await foreach (var photo in query.AsAsyncEnumerable().WithCancellation(cancellationToken))
                 yield return photo;
         }
