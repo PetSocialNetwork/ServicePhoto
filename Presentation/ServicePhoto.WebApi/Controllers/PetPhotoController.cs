@@ -4,6 +4,8 @@ using ServicePhoto.Domain.Entities;
 using ServicePhoto.Domain.Services;
 using ServicePhoto.WebApi.Models.Requests;
 using ServicePhoto.WebApi.Models.Responses;
+using ServicePhoto.WebApi.Services.Interfaces;
+using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 
 namespace ServicePhoto.WebApi.Controllers
@@ -13,13 +15,15 @@ namespace ServicePhoto.WebApi.Controllers
     public class PetPhotoController : ControllerBase
     {
         private readonly PetPhotoService _petPhotoService;
-        private readonly IHostEnvironment _environment; 
+        private readonly IFileService _fileService;
         private readonly IMapper _mapper;
-        public PetPhotoController(PetPhotoService petProfileService, IMapper mapper, IHostEnvironment environment)
+        public PetPhotoController(PetPhotoService petProfileService,
+            IFileService fileService,
+            IMapper mapper)
         {
             _petPhotoService = petProfileService ?? throw new ArgumentException(nameof(petProfileService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _environment = environment;
+            _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
         }
 
         //[ProducesResponseType(StatusCodes.Status200OK)]
@@ -28,32 +32,15 @@ namespace ServicePhoto.WebApi.Controllers
         public async Task<ActionResult<PetPhotoReponse>> AddPetPhotoAsync
             ([FromForm] Guid petId,
             [FromForm] Guid accountId,
-            IFormFile file, CancellationToken cancellationToken)
+            [Required] IFormFile file, CancellationToken cancellationToken)
         {
-            if (file == null || file.Length == 0)
+            if (file.Length == 0)
             {
-                return BadRequest("No file uploaded");
+                return BadRequest("Нет данных файла.");
             }
 
-            string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images");
-
-            if (!Directory.Exists(uploadsFolder))
-            {
-                Directory.CreateDirectory(uploadsFolder);
-            }
-            string fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
-            string filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(fileStream, cancellationToken);
-            }
-
-            var baseUrl = $"https://localhost:7216";
-            var relativePath = $"/images/{fileName}";
-            var fullUrl = $"{baseUrl}{relativePath}";
-
-            var photo = new PetPhoto(Guid.NewGuid(), fullUrl, petId, accountId);
+            var url = await _fileService.UploadPhotoAsync(file, cancellationToken);
+            var photo = new PetPhoto(Guid.NewGuid(), url, petId, accountId);
             var response = await _petPhotoService.AddPetPhotoAsync(photo, cancellationToken);
             return _mapper.Map<PetPhotoReponse>(response);
         }
@@ -65,35 +52,17 @@ namespace ServicePhoto.WebApi.Controllers
         public async Task<ActionResult<PetPhotoReponse>> AddAndSetPetPhotoAsync
             ([FromForm] Guid petId,
             [FromForm] Guid accountId,
-            IFormFile file, CancellationToken cancellationToken)
+            [Required] IFormFile file, CancellationToken cancellationToken)
         {
-            if (file == null || file.Length == 0)
+            if (file.Length == 0)
             {
-                return BadRequest("No file uploaded");
-            }
-            
-            string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images");
-
-            if (!Directory.Exists(uploadsFolder))
-            {
-                Directory.CreateDirectory(uploadsFolder);
+                return BadRequest("Нет данных файла.");
             }
 
-            string fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
-            string filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(fileStream, cancellationToken);
-            }
-
-            var baseUrl = $"https://localhost:7216";
-            var relativePath = $"images/{fileName}"; 
-            var fullUrl = $"{baseUrl}/{relativePath}"; 
-            var photo = new PetPhoto(Guid.NewGuid(), fullUrl, petId, accountId);
+            var url = await _fileService.UploadPhotoAsync(file, cancellationToken);
+            var photo = new PetPhoto(Guid.NewGuid(), url, petId, accountId);
             var response = await _petPhotoService.AddAndSetPetPhotoAsync(photo, cancellationToken);
             return _mapper.Map<PetPhotoReponse>(response);
-
         }
 
         //[ProducesResponseType(StatusCodes.Status200OK)]
@@ -101,7 +70,8 @@ namespace ServicePhoto.WebApi.Controllers
         [HttpDelete("[action]")]
         public async Task DeletePetPhotoAsync(Guid photoId, CancellationToken cancellationToken)
         {
-            await _petPhotoService.DeletePetPhotoAsync(photoId, cancellationToken);
+            var path = await _petPhotoService.DeletePetPhotoAsync(photoId, cancellationToken);
+            _fileService.DeleteFile(path);
         }
 
         //[ProducesResponseType(StatusCodes.Status200OK)]
@@ -109,7 +79,8 @@ namespace ServicePhoto.WebApi.Controllers
         [HttpDelete("[action]")]
         public async Task DeleteAllPetPhotosAsync(Guid petId, Guid accountId, CancellationToken cancellationToken)
         {
-            await _petPhotoService.DeleteAllPetPhotosAsync(petId, accountId, cancellationToken);
+            var paths = await _petPhotoService.DeleteAllPetPhotosAsync(petId, accountId, cancellationToken);
+            _fileService.DeleteFiles(paths);
         }
 
         //[ProducesResponseType(StatusCodes.Status200OK)]
@@ -143,6 +114,11 @@ namespace ServicePhoto.WebApi.Controllers
                 yield return photoResponse;
             }
         }
+
+
+
+
+
 
         //[ProducesResponseType(StatusCodes.Status200OK)]
         //[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(PhotoNotFoundException))]

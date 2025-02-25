@@ -38,60 +38,30 @@ namespace ServicePhoto.Domain.Services
             return photo;
         }
 
-        public async Task DeletePetPhotoAsync(Guid photoId, CancellationToken cancellationToken)
+        public async Task<string> DeletePetPhotoAsync(Guid photoId, CancellationToken cancellationToken)
         {
             var existedPhoto = await _photoRepository.FindPetPhotoAsync(photoId, cancellationToken);
             if (existedPhoto is null)
             {
                 throw new PhotoNotFoundException("Фотографии с таким идентификатором не существует.");
             }
-
+            var filePath = existedPhoto.FilePath;
             await _photoRepository.Delete(existedPhoto, cancellationToken);
+            return filePath;
         }
 
-        public async Task DeleteAllPetPhotosAsync(Guid petId, Guid accountId, CancellationToken cancellationToken)
+        public async Task<List<string>> DeleteAllPetPhotosAsync(Guid petId, Guid accountId, CancellationToken cancellationToken)
         {
             var photosToDelete = await _photoRepository.GetPetPhotosByAccountIdAsync(petId, accountId, cancellationToken);
-
-            if (photosToDelete.Any())
-            {
-                foreach (var photo in photosToDelete)
-                {
-                    Uri uri = new Uri(photo.FilePath);
-                    string relativePath = uri.AbsolutePath.TrimStart('/');
-                    string filePath = "";
-
-                    if (File.Exists(filePath))
-                    {
-                        File.Delete(filePath);
-                    }
-                }
-                await _photoRepository.DeleteRange(photosToDelete, cancellationToken);
-            }
+            List<string> pathsToDelete = photosToDelete.Select(p => p.FilePath).ToList();
+            await _photoRepository.DeleteRange(photosToDelete, cancellationToken);
+            return pathsToDelete;
         }
 
-        public async Task<PetPhoto> SetMainPetPhotoAsync(Guid petId, Guid accountId, Guid photoId, CancellationToken cancellationToken)
-        {
-            //TODO: Транзакция
-            var photo = await FindMainPetPhotoAsync(petId, accountId, cancellationToken);
-            if (photo is not null)
-            {
-                await _photoRepository.Delete(photo, cancellationToken);
-            }
-
-            var existedPhoto = await _photoRepository.GetById(photoId, cancellationToken);
-            if (existedPhoto is null)
-            {
-                throw new PhotoNotFoundException("Фотографии с таким идентификатором не существует.");
-            }
-            existedPhoto.IsMainPetPhoto = true;
-            await _photoRepository.Update(existedPhoto, cancellationToken);
-            return existedPhoto;
-        }
 
         public async IAsyncEnumerable<PetPhoto>? BySearchPetPhotosAsync(Guid petId, Guid accountId, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            await foreach (var photo in _photoRepository.BySearch(petId,accountId, cancellationToken))
+            await foreach (var photo in _photoRepository.BySearch(petId, accountId, cancellationToken))
                 yield return photo;
         }
 
@@ -112,5 +82,29 @@ namespace ServicePhoto.Domain.Services
             var photo = await _photoRepository.FindMainPhotoAsync(petId, accountId, cancellationToken);
             return photo;
         }
+
+
+
+
+        public async Task<PetPhoto> SetMainPetPhotoAsync(Guid petId, Guid accountId, Guid photoId, CancellationToken cancellationToken)
+        {
+            //TODO: Транзакция
+            var photo = await FindMainPetPhotoAsync(petId, accountId, cancellationToken);
+            if (photo is not null)
+            {
+                await _photoRepository.Delete(photo, cancellationToken);
+                //тоже удалять
+            }
+
+            var existedPhoto = await _photoRepository.GetById(photoId, cancellationToken);
+            if (existedPhoto is null)
+            {
+                throw new PhotoNotFoundException("Фотографии с таким идентификатором не существует.");
+            }
+            existedPhoto.IsMainPetPhoto = true;
+            await _photoRepository.Update(existedPhoto, cancellationToken);
+            return existedPhoto;
+        }
+
     }
 }

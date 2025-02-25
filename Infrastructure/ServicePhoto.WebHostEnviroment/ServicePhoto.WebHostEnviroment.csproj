@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\ServicePhoto.Domain\ServicePhoto.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

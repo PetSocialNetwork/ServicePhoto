@@ -4,6 +4,8 @@ using ServicePhoto.Domain.Entities;
 using ServicePhoto.Domain.Services;
 using ServicePhoto.WebApi.Models.Requests;
 using ServicePhoto.WebApi.Models.Responses;
+using ServicePhoto.WebApi.Services.Interfaces;
+using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 
 namespace ServicePhoto.WebApi.Controllers
@@ -13,11 +15,15 @@ namespace ServicePhoto.WebApi.Controllers
     public class PersonalPhotoController : ControllerBase
     {
         private readonly PersonalPhotoService _personalPhotoService;
+        private readonly IFileService _fileService;
         private readonly IMapper _mapper;
-        public PersonalPhotoController(PersonalPhotoService personalPhotoService, IMapper mapper)
+        public PersonalPhotoController(PersonalPhotoService personalPhotoService,
+            IFileService fileService,
+            IMapper mapper)
         {
             _personalPhotoService = personalPhotoService ?? throw new ArgumentException(nameof(personalPhotoService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
         }
 
         //[ProducesResponseType(StatusCodes.Status200OK)]
@@ -25,32 +31,15 @@ namespace ServicePhoto.WebApi.Controllers
         [HttpPost("[action]")]
         public async Task<ActionResult<PersonalPhotoResponse>> AddPersonalPhotoAsync
             ([FromForm] Guid profileId,
-            IFormFile file, CancellationToken cancellationToken)
+            [Required] IFormFile file, CancellationToken cancellationToken)
         {
-            if (file == null || file.Length == 0)
+            if (file.Length == 0)
             {
-                return BadRequest("No file uploaded");
+                return BadRequest("Нет данных файла.");
             }
 
-            string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images");
-
-            if (!Directory.Exists(uploadsFolder))
-            {
-                Directory.CreateDirectory(uploadsFolder);
-            }
-            string fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
-            string filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(fileStream, cancellationToken);
-            }
-
-            var baseUrl = $"https://localhost:7216";
-            var relativePath = $"/images/{fileName}";
-            var fullUrl = $"{baseUrl}{relativePath}";
-
-            var photo = new PersonalPhoto(Guid.NewGuid(), profileId, fullUrl);
+            var url = await _fileService.UploadPhotoAsync(file, cancellationToken);
+            var photo = new PersonalPhoto(Guid.NewGuid(), profileId, url);
             var response = await _personalPhotoService.AddPersonalPhotoAsync(photo, cancellationToken);
             return _mapper.Map<PersonalPhotoResponse>(response);
         }
@@ -61,32 +50,15 @@ namespace ServicePhoto.WebApi.Controllers
         [HttpPost("[action]")]
         public async Task<ActionResult<PersonalPhotoResponse>> AddAndSetPersonalPhotoAsync
             ([FromForm] Guid profileId,
-            IFormFile file, CancellationToken cancellationToken)
+            [Required] IFormFile file, CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
-                return BadRequest("No file uploaded");
+                return BadRequest("Нет данных файла.");
             }
 
-            string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images");
-
-            if (!Directory.Exists(uploadsFolder))
-            {
-                Directory.CreateDirectory(uploadsFolder);
-            }
-
-            string fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
-            string filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(fileStream, cancellationToken);
-            }
-
-            var baseUrl = $"https://localhost:7216";
-            var relativePath = $"images/{fileName}";
-            var fullUrl = $"{baseUrl}/{relativePath}";
-            var photo = new PersonalPhoto(Guid.NewGuid(), profileId, fullUrl);
+            var url = await _fileService.UploadPhotoAsync(file, cancellationToken);
+            var photo = new PersonalPhoto(Guid.NewGuid(), profileId, url);
             var response = await _personalPhotoService.AddAndSetPersonalPhotoAsync(photo, cancellationToken);
             return _mapper.Map<PersonalPhotoResponse>(response);
 
@@ -97,7 +69,17 @@ namespace ServicePhoto.WebApi.Controllers
         [HttpDelete("[action]")]
         public async Task DeletePersonalPhotoAsync([FromQuery] Guid photoId, CancellationToken cancellationToken)
         {
-            await _personalPhotoService.DeletePersonalPhotoAsync(photoId, cancellationToken);
+            var path = await _personalPhotoService.DeletePersonalPhotoAsync(photoId, cancellationToken);
+            _fileService.DeleteFile(path);
+        }
+
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [HttpDelete("[action]")]
+        public async Task DeleteAllPersonalPhotosAsync([FromQuery] Guid profileId, CancellationToken cancellationToken)
+        {
+            var paths = await _personalPhotoService.DeleteAllPersonalPhotosAsync(profileId, cancellationToken);
+            _fileService.DeleteFiles(paths);
         }
 
         //[ProducesResponseType(StatusCodes.Status200OK)]
@@ -132,6 +114,10 @@ namespace ServicePhoto.WebApi.Controllers
             }
         }
 
+
+
+
+
         //[ProducesResponseType(StatusCodes.Status200OK)]
         //[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(PhotoNotFoundException))]
         //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -143,12 +129,6 @@ namespace ServicePhoto.WebApi.Controllers
             return _mapper.Map<PersonalPhotoResponse>(photo);
         }
 
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpDelete("[action]")]
-        public async Task DeleteAllPersonalPhotosAsync([FromQuery] Guid profileId, CancellationToken cancellationToken)
-        {
-            await _personalPhotoService.DeleteAllPersonalPhotosAsync(profileId, cancellationToken);
-        }
+
     }
 }

@@ -5,6 +5,8 @@ using ServicePhoto.DataEntityFramework;
 using ServicePhoto.DataEntityFramework.Repositories;
 using ServicePhoto.Domain.Interfaces;
 using ServicePhoto.Domain.Services;
+using ServicePhoto.WebApi.Services.Implementations;
+using ServicePhoto.WebApi.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped(typeof(IRepositoryEF<>), typeof(EFRepository<>));
 builder.Services.AddScoped<IPetPhotoRepository, PetPhotoRepository>();
 builder.Services.AddScoped<IPersonalPhotoRepository, PersonalPhotoRepository>();
+builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<PetPhotoService>();
 builder.Services.AddScoped<PersonalPhotoService>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

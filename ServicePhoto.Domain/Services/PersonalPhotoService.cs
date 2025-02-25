@@ -37,7 +37,7 @@ namespace ServicePhoto.Domain.Services
             return photo;
         }
 
-        public async Task DeletePersonalPhotoAsync(Guid photoId, CancellationToken cancellationToken)
+        public async Task<string> DeletePersonalPhotoAsync(Guid photoId, CancellationToken cancellationToken)
         {
             var existedPhoto = await _personalPhotoRepository.FindPersonalPhotoAsync(photoId, cancellationToken);
             if (existedPhoto is null)
@@ -45,7 +45,9 @@ namespace ServicePhoto.Domain.Services
                 throw new PhotoNotFoundException("Фотографии с таким идентификатором не существует.");
             }
 
+            var path = existedPhoto.FilePath;
             await _personalPhotoRepository.Delete(existedPhoto, cancellationToken);
+            return path;
         }
 
         public async Task<PersonalPhoto> GetPersonalPhotoByIdAsync(Guid photoId, CancellationToken cancellationToken)
@@ -71,6 +73,18 @@ namespace ServicePhoto.Domain.Services
                 yield return photo;
         }
 
+        public async Task<List<string>> DeleteAllPersonalPhotosAsync(Guid profileId, CancellationToken cancellationToken)
+        {
+            var photosToDelete = await _personalPhotoRepository.GetPersonalPhotosAsync(profileId, cancellationToken); ;
+            List<string> pathsToDelete = photosToDelete.Select(p => p.FilePath).ToList();
+            await _personalPhotoRepository.DeleteRange(photosToDelete, cancellationToken);
+            return pathsToDelete;
+        }
+
+
+
+
+
         public async Task<PersonalPhoto> SetMainPersonalPhotoAsync(Guid profileId, Guid photoId, CancellationToken cancellationToken)
         {
             //TODO: Транзакция
@@ -78,6 +92,7 @@ namespace ServicePhoto.Domain.Services
             if (photo is not null)
             {
                 await _personalPhotoRepository.Delete(photo, cancellationToken);
+                //тоже удалять
             }
 
             var existedPhoto = await _personalPhotoRepository.GetById(photoId, cancellationToken);
@@ -89,26 +104,5 @@ namespace ServicePhoto.Domain.Services
             await _personalPhotoRepository.Update(existedPhoto, cancellationToken);
             return existedPhoto;
         }
-
-        public async Task DeleteAllPersonalPhotosAsync(Guid profileId, CancellationToken cancellationToken)
-        {
-            var photosToDelete = await _personalPhotoRepository.GetPersonalPhotosAsync(profileId, cancellationToken); ;
-
-            if (photosToDelete.Any())
-            {
-                foreach (var photo in photosToDelete)
-                {
-                    Uri uri = new Uri(photo.FilePath);
-                    string relativePath = uri.AbsolutePath.TrimStart('/');
-                    string filePath = "";
-
-                    if (File.Exists(filePath))
-                    {
-                        File.Delete(filePath);
-                    }
-                }
-                await _personalPhotoRepository.DeleteRange(photosToDelete, cancellationToken);
-            }
-        }   
     }
 }
