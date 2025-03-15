@@ -25,7 +25,7 @@ namespace ServicePhoto.WebApi.Filters
             return context.Exception switch
             {
                 PhotoNotFoundException => ("Фотография не найдена", StatusCodes.Status400BadRequest),
-                Exception => ("Неизвестная ошибка.", StatusCodes.Status500InternalServerError),
+                Exception => ("Внутреняя ошибка сервера", StatusCodes.Status500InternalServerError),
                 _ => (null, 0)
             };
         }
