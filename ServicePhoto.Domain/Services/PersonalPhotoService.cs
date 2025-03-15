@@ -67,7 +67,12 @@ namespace ServicePhoto.Domain.Services
             return await _personalPhotoRepository.FindMainPersonalPhotoAsync(profileId, cancellationToken);
         }
 
-        public async IAsyncEnumerable<PersonalPhoto>? BySearchPersonalPhotosAsync(Guid profileId, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async Task<List<PersonalPhoto>> FindMainPersonalPhotosByIdsAsync(Guid[] profileIds, CancellationToken cancellationToken)
+        {
+            return await _personalPhotoRepository.FindMainPersonalPhotosByIdsAsync(profileIds, cancellationToken);
+        }
+
+        public async IAsyncEnumerable<PersonalPhoto>? BySearchPhotosAsync(Guid profileId, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             await foreach (var photo in _personalPhotoRepository.BySearch(profileId, cancellationToken))
                 yield return photo;
@@ -81,18 +86,15 @@ namespace ServicePhoto.Domain.Services
             return pathsToDelete;
         }
 
-
-
-
-
-        public async Task<PersonalPhoto> SetMainPersonalPhotoAsync(Guid profileId, Guid photoId, CancellationToken cancellationToken)
+        public async Task<(PersonalPhoto, string)> SetMainPersonalPhotoAsync(Guid profileId, Guid photoId, CancellationToken cancellationToken)
         {
             //TODO: Транзакция
+            string oldFilePath = string.Empty;
             var photo = await FindMainPersonalPhotoAsync(profileId, cancellationToken);
             if (photo is not null)
             {
+                oldFilePath = photo.FilePath;
                 await _personalPhotoRepository.Delete(photo, cancellationToken);
-                //тоже удалять
             }
 
             var existedPhoto = await _personalPhotoRepository.GetById(photoId, cancellationToken);
@@ -102,7 +104,7 @@ namespace ServicePhoto.Domain.Services
             }
             existedPhoto.IsMainPersonalPhoto = true;
             await _personalPhotoRepository.Update(existedPhoto, cancellationToken);
-            return existedPhoto;
+            return (existedPhoto, oldFilePath);
         }
     }
 }

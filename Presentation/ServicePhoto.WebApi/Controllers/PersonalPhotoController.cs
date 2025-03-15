@@ -26,8 +26,6 @@ namespace ServicePhoto.WebApi.Controllers
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
         }
 
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("[action]")]
         public async Task<ActionResult<PersonalPhotoResponse>> AddPersonalPhotoAsync
             ([FromForm] Guid profileId,
@@ -44,9 +42,6 @@ namespace ServicePhoto.WebApi.Controllers
             return _mapper.Map<PersonalPhotoResponse>(response);
         }
 
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(PhotoNotFoundException))]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("[action]")]
         public async Task<ActionResult<PersonalPhotoResponse>> AddAndSetPersonalPhotoAsync
             ([FromForm] Guid profileId,
@@ -64,8 +59,6 @@ namespace ServicePhoto.WebApi.Controllers
 
         }
 
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpDelete("[action]")]
         public async Task DeletePersonalPhotoAsync([FromQuery] Guid photoId, CancellationToken cancellationToken)
         {
@@ -73,8 +66,6 @@ namespace ServicePhoto.WebApi.Controllers
             _fileService.DeleteFile(path);
         }
 
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpDelete("[action]")]
         public async Task DeleteAllPersonalPhotosAsync([FromQuery] Guid profileId, CancellationToken cancellationToken)
         {
@@ -82,9 +73,6 @@ namespace ServicePhoto.WebApi.Controllers
             _fileService.DeleteFiles(paths);
         }
 
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(PhotoNotFoundException))]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("[action]")]
         public async Task<PersonalPhotoResponse> GetPersonalPhotoByIdAsync([FromQuery] Guid photoId, CancellationToken cancellationToken)
         {
@@ -92,9 +80,6 @@ namespace ServicePhoto.WebApi.Controllers
             return _mapper.Map<PersonalPhotoResponse>(photo);
         }
 
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(PhotoNotFoundException))]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("[action]")]
         public async Task<PersonalPhotoResponse?> GetMainPersonalPhotoAsync([FromQuery] Guid profileId, CancellationToken cancellationToken)
         {
@@ -102,33 +87,30 @@ namespace ServicePhoto.WebApi.Controllers
             return _mapper.Map<PersonalPhotoResponse>(photo);
         }
 
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("[action]")]
-        public async IAsyncEnumerable<PersonalPhotoResponse>? BySearchPersonalPhotosAsync([FromQuery] Guid profileId, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async Task<List<PersonalPhotoResponse>> GetMainPersonalPhotoByIdsAsync([FromBody] Guid[] profileIds, CancellationToken cancellationToken)
         {
-            await foreach (var photo in _personalPhotoService.BySearchPersonalPhotosAsync(profileId, cancellationToken))
+            var photo = await _personalPhotoService.FindMainPersonalPhotosByIdsAsync(profileIds, cancellationToken);
+            return _mapper.Map<List<PersonalPhotoResponse>>(photo);
+        }
+
+        [HttpGet("[action]")]
+        public async IAsyncEnumerable<PersonalPhotoResponse>? BySearchAsync([FromQuery] Guid profileId, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await foreach (var photo in _personalPhotoService.BySearchPhotosAsync(profileId, cancellationToken))
             {
                 var photoResponse = _mapper.Map<PersonalPhotoResponse>(photo);
                 yield return photoResponse;
             }
         }
 
-
-
-
-
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(PhotoNotFoundException))]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("[action]")]
         public async Task<PersonalPhotoResponse> SetMainPersonalPhotoAsync([FromBody] PersonalPhotoRequest request, CancellationToken cancellationToken)
         {
-            var photo = await _personalPhotoService
+            var (photo, oldFilePath) = await _personalPhotoService
                 .SetMainPersonalPhotoAsync(request.ProfileId, request.PhotoId, cancellationToken);
+            _fileService.DeleteFile(oldFilePath);
             return _mapper.Map<PersonalPhotoResponse>(photo);
         }
-
-
     }
 }

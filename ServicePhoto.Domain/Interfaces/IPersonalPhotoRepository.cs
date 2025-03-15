@@ -8,5 +8,6 @@ namespace ServicePhoto.Domain.Interfaces
         Task<PersonalPhoto?> FindPersonalPhotoAsync(Guid photoId, CancellationToken cancellationToken);
         IAsyncEnumerable<PersonalPhoto> BySearch(Guid profileId, CancellationToken cancellationToken);
         Task<IEnumerable<PersonalPhoto>> GetPersonalPhotosAsync(Guid profileId, CancellationToken cancellationToken);
+        Task<List<PersonalPhoto>> FindMainPersonalPhotosByIdsAsync(Guid[] profileIds, CancellationToken cancellationToken);
     }
 }

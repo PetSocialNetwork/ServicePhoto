@@ -59,7 +59,7 @@ namespace ServicePhoto.Domain.Services
         }
 
 
-        public async IAsyncEnumerable<PetPhoto>? BySearchPetPhotosAsync(Guid petId, Guid accountId, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<PetPhoto>? BySearchAsync(Guid petId, Guid accountId, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             await foreach (var photo in _photoRepository.BySearch(petId, accountId, cancellationToken))
                 yield return photo;
@@ -83,17 +83,15 @@ namespace ServicePhoto.Domain.Services
             return photo;
         }
 
-
-
-
-        public async Task<PetPhoto> SetMainPetPhotoAsync(Guid petId, Guid accountId, Guid photoId, CancellationToken cancellationToken)
+        public async Task<(PetPhoto, string)> SetMainPetPhotoAsync(Guid petId, Guid accountId, Guid photoId, CancellationToken cancellationToken)
         {
             //TODO: Транзакция
+            string oldFilePath = string.Empty;
             var photo = await FindMainPetPhotoAsync(petId, accountId, cancellationToken);
             if (photo is not null)
             {
+                oldFilePath = photo.FilePath;
                 await _photoRepository.Delete(photo, cancellationToken);
-                //тоже удалять
             }
 
             var existedPhoto = await _photoRepository.GetById(photoId, cancellationToken);
@@ -103,8 +101,7 @@ namespace ServicePhoto.Domain.Services
             }
             existedPhoto.IsMainPetPhoto = true;
             await _photoRepository.Update(existedPhoto, cancellationToken);
-            return existedPhoto;
+            return (existedPhoto, oldFilePath);
         }
-
     }
 }

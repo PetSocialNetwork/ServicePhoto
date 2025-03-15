@@ -5,12 +5,13 @@ namespace ServicePhoto.WebApi.Services.Implementations
     public class FileService : IFileService
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IConfiguration _configuration;
 
-        public FileService(IWebHostEnvironment webHostEnvironment)
+        public FileService(IWebHostEnvironment webHostEnvironment, IConfiguration configuration)
         {
             _webHostEnvironment = webHostEnvironment ?? throw new ArgumentException(nameof(webHostEnvironment));
+            _configuration = configuration ?? throw new ArgumentException(nameof(configuration));
         }
-
         public async Task<string> UploadPhotoAsync(IFormFile file, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(nameof(file));
@@ -29,7 +30,14 @@ namespace ServicePhoto.WebApi.Services.Implementations
                 await file.CopyToAsync(fileStream, cancellationToken);
             }
 
-            var fullUrl = $"https://localhost:7216/images/{fileName}";
+            var photoBaseUrl = _configuration["PhotoBaseUrl"];
+
+            if (string.IsNullOrEmpty(photoBaseUrl))
+            {
+                throw new InvalidOperationException("Установите базовый адрес в appsettings.json.");
+            }
+
+            var fullUrl = $"{photoBaseUrl}{fileName}";
             return fullUrl;
         }
 

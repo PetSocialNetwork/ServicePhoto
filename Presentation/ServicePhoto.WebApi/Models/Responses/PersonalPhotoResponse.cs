@@ -10,7 +10,7 @@ namespace ServicePhoto.WebApi.Models.Responses
         [Required]
         public string FilePath { get; set; }
         [Required]
-        public Guid AccountId { get; init; }
+        public Guid ProfileId { get; init; }
         [Required]
         public bool IsMainPersonalPhoto { get; set; }
     }
