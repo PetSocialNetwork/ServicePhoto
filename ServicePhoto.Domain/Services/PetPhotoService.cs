@@ -19,7 +19,7 @@ namespace ServicePhoto.Domain.Services
         {
             ArgumentNullException.ThrowIfNull(photo);
 
-            var existedPhoto = await FindMainPetPhotoAsync(photo.PetId, photo.AccountId, cancellationToken);
+            var existedPhoto = await FindMainPetPhotoAsync(photo.PetId, photo.ProfileId, cancellationToken);
             if (existedPhoto != null)
             {
                 await _photoRepository.Delete(existedPhoto, cancellationToken);
@@ -50,18 +50,18 @@ namespace ServicePhoto.Domain.Services
             return filePath;
         }
 
-        public async Task<List<string>> DeleteAllPetPhotosAsync(Guid petId, Guid accountId, CancellationToken cancellationToken)
+        public async Task<List<string>> DeleteAllPetPhotosAsync(Guid petId, Guid profileId, CancellationToken cancellationToken)
         {
-            var photosToDelete = await _photoRepository.GetPetPhotosByAccountIdAsync(petId, accountId, cancellationToken);
+            var photosToDelete = await _photoRepository.GetPetPhotosAsync(petId, profileId, cancellationToken);
             List<string> pathsToDelete = photosToDelete.Select(p => p.FilePath).ToList();
             await _photoRepository.DeleteRange(photosToDelete, cancellationToken);
             return pathsToDelete;
         }
 
 
-        public async IAsyncEnumerable<PetPhoto>? BySearchAsync(Guid petId, Guid accountId, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<PetPhoto>? BySearchAsync(Guid petId, Guid profileId, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            await foreach (var photo in _photoRepository.BySearch(petId, accountId, cancellationToken))
+            await foreach (var photo in _photoRepository.BySearch(petId, profileId, cancellationToken))
                 yield return photo;
         }
 
@@ -77,17 +77,17 @@ namespace ServicePhoto.Domain.Services
             }
         }
 
-        public async Task<PetPhoto?> FindMainPetPhotoAsync(Guid petId, Guid accountId, CancellationToken cancellationToken)
+        public async Task<PetPhoto?> FindMainPetPhotoAsync(Guid petId, Guid profileId, CancellationToken cancellationToken)
         {
-            var photo = await _photoRepository.FindMainPhotoAsync(petId, accountId, cancellationToken);
+            var photo = await _photoRepository.FindMainPhotoAsync(petId, profileId, cancellationToken);
             return photo;
         }
 
-        public async Task<(PetPhoto, string)> SetMainPetPhotoAsync(Guid petId, Guid accountId, Guid photoId, CancellationToken cancellationToken)
+        public async Task<(PetPhoto, string)> SetMainPetPhotoAsync(Guid petId, Guid profileId, Guid photoId, CancellationToken cancellationToken)
         {
             //TODO: Транзакция
             string oldFilePath = string.Empty;
-            var photo = await FindMainPetPhotoAsync(petId, accountId, cancellationToken);
+            var photo = await FindMainPetPhotoAsync(petId, profileId, cancellationToken);
             if (photo is not null)
             {
                 oldFilePath = photo.FilePath;

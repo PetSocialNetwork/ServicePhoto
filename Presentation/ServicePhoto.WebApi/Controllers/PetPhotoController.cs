@@ -29,7 +29,7 @@ namespace ServicePhoto.WebApi.Controllers
         [HttpPost("[action]")]
         public async Task<ActionResult<PetPhotoReponse>> AddPetPhotoAsync
             ([FromForm] Guid petId,
-            [FromForm] Guid accountId,
+            [FromForm] Guid profileId,
             [Required] IFormFile file, CancellationToken cancellationToken)
         {
             if (file.Length == 0)
@@ -38,7 +38,7 @@ namespace ServicePhoto.WebApi.Controllers
             }
 
             var url = await _fileService.UploadPhotoAsync(file, cancellationToken);
-            var photo = new PetPhoto(Guid.NewGuid(), url, petId, accountId);
+            var photo = new PetPhoto(Guid.NewGuid(), url, petId, profileId);
             var response = await _petPhotoService.AddPetPhotoAsync(photo, cancellationToken);
             return _mapper.Map<PetPhotoReponse>(response);
         }
@@ -47,7 +47,7 @@ namespace ServicePhoto.WebApi.Controllers
         [HttpPost("[action]")]
         public async Task<ActionResult<PetPhotoReponse>> AddAndSetPetPhotoAsync
             ([FromForm] Guid petId,
-            [FromForm] Guid accountId,
+            [FromForm] Guid profileId,
             [Required] IFormFile file, CancellationToken cancellationToken)
         {
             if (file.Length == 0)
@@ -56,7 +56,7 @@ namespace ServicePhoto.WebApi.Controllers
             }
 
             var url = await _fileService.UploadPhotoAsync(file, cancellationToken);
-            var photo = new PetPhoto(Guid.NewGuid(), url, petId, accountId);
+            var photo = new PetPhoto(Guid.NewGuid(), url, petId, profileId);
             var response = await _petPhotoService.AddAndSetPetPhotoAsync(photo, cancellationToken);
             return _mapper.Map<PetPhotoReponse>(response);
         }
@@ -69,9 +69,9 @@ namespace ServicePhoto.WebApi.Controllers
         }
 
         [HttpDelete("[action]")]
-        public async Task DeleteAllPetPhotosAsync(Guid petId, Guid accountId, CancellationToken cancellationToken)
+        public async Task DeleteAllPetPhotosAsync(Guid petId, Guid profileId, CancellationToken cancellationToken)
         {
-            var paths = await _petPhotoService.DeleteAllPetPhotosAsync(petId, accountId, cancellationToken);
+            var paths = await _petPhotoService.DeleteAllPetPhotosAsync(petId, profileId, cancellationToken);
             _fileService.DeleteFiles(paths);
         }
 
@@ -83,16 +83,16 @@ namespace ServicePhoto.WebApi.Controllers
         }
 
         [HttpGet("[action]")]
-        public async Task<PetPhotoReponse?> GetMainPetPhotoAsync(Guid petId, Guid accountId, CancellationToken cancellationToken)
+        public async Task<PetPhotoReponse?> GetMainPetPhotoAsync(Guid petId, Guid profileId, CancellationToken cancellationToken)
         {
-            var photo = await _petPhotoService.FindMainPetPhotoAsync(petId, accountId, cancellationToken);
+            var photo = await _petPhotoService.FindMainPetPhotoAsync(petId, profileId, cancellationToken);
             return _mapper.Map<PetPhotoReponse>(photo);
         }
 
         [HttpGet("[action]")]
-        public async IAsyncEnumerable<PetPhotoReponse> BySearchAsync(Guid petId, Guid accountId, [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<PetPhotoReponse> BySearchAsync(Guid petId, Guid profileId, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            await foreach (var photo in _petPhotoService.BySearchAsync(petId, accountId, cancellationToken))
+            await foreach (var photo in _petPhotoService.BySearchAsync(petId, profileId, cancellationToken))
             {
                 var photoResponse = _mapper.Map<PetPhotoReponse>(photo);
                 yield return photoResponse;
@@ -103,7 +103,7 @@ namespace ServicePhoto.WebApi.Controllers
         public async Task<PetPhotoReponse> SetMainPetPhotoAsync([FromBody] PetMainPhotoRequest request, CancellationToken cancellationToken)
         {
             var (photo, oldFilePath) = await _petPhotoService
-                .SetMainPetPhotoAsync(request.PetId, request.AccountId, request.PhotoId, cancellationToken);
+                .SetMainPetPhotoAsync(request.PetId, request.ProfileId, request.PhotoId, cancellationToken);
             _fileService.DeleteFile(oldFilePath);
             return _mapper.Map<PetPhotoReponse>(photo);
         }

@@ -7,7 +7,7 @@ namespace ServicePhoto.WebApi.Models.Requests
         [Required]
         public Guid PetId { get; set; }
         [Required]
-        public Guid AccountId { get; set; }
+        public Guid ProfileId { get; set; }
         [Required]
         public Guid PhotoId { get; set; }
     }

@@ -7,14 +7,14 @@ namespace ServicePhoto.Domain.Entities
         public Guid Id { get; init; }
         public string FilePath { get; set; }
         public Guid PetId { get; init; }
-        public Guid AccountId { get; init; }
+        public Guid ProfileId { get; init; }
         public bool IsMainPetPhoto { get; set; } = false;
-        public PetPhoto(Guid id, string filePath, Guid petId, Guid accountId)
+        public PetPhoto(Guid id, string filePath, Guid petId, Guid profileId)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
             Id = id;
             PetId = petId;
-            AccountId = accountId;
+            ProfileId = profileId;
             FilePath = filePath;
         }
         protected PetPhoto() { }
