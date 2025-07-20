@@ -1,4 +1,5 @@
 ﻿using ServicePhoto.Domain.Entities;
+using ServicePhoto.Domain.Shared;
 
 namespace ServicePhoto.Domain.Interfaces
 {
@@ -6,8 +7,8 @@ namespace ServicePhoto.Domain.Interfaces
     {
         Task<PersonalPhoto?> FindMainPersonalPhotoAsync(Guid profileId, CancellationToken cancellationToken);
         Task<PersonalPhoto?> FindPersonalPhotoAsync(Guid photoId, CancellationToken cancellationToken);
-        IAsyncEnumerable<PersonalPhoto> BySearch(Guid profileId, CancellationToken cancellationToken);
-        Task<IEnumerable<PersonalPhoto>> GetPersonalPhotosAsync(Guid profileId, CancellationToken cancellationToken);
+        Task<List<PersonalPhoto>> BySearch(Guid profileId, PaginationOptions options, CancellationToken cancellationToken);
+        Task<List<PersonalPhoto>> GetPersonalPhotosAsync(Guid profileId, CancellationToken cancellationToken);
         Task<List<PersonalPhoto>> FindMainPersonalPhotosByIdsAsync(Guid[] profileIds, CancellationToken cancellationToken);
     }
 }

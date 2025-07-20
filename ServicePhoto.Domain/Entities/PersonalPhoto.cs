@@ -1,4 +1,5 @@
 ﻿using ServicePhoto.Domain.Interfaces;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ServicePhoto.Domain.Entities
 {
@@ -8,6 +9,10 @@ namespace ServicePhoto.Domain.Entities
         public string FilePath { get; set; }
         public Guid ProfileId { get; init; }
         public bool IsMainPersonalPhoto { get; set; }
+        [NotMapped]
+        public byte[] FileBytes { get; set; }
+        [NotMapped]
+        public string OriginalFileName { get; set; }
         public PersonalPhoto(Guid id, Guid profileId, string filePath)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(filePath);

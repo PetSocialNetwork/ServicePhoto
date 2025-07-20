@@ -2,11 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using ServicePhoto.Domain.Entities;
 using ServicePhoto.Domain.Services;
+using ServicePhoto.Domain.Shared;
 using ServicePhoto.WebApi.Models.Requests;
 using ServicePhoto.WebApi.Models.Responses;
-using ServicePhoto.WebApi.Services.Interfaces;
-using System.ComponentModel.DataAnnotations;
-using System.Runtime.CompilerServices;
 
 namespace ServicePhoto.WebApi.Controllers
 {
@@ -15,97 +13,142 @@ namespace ServicePhoto.WebApi.Controllers
     public class PetPhotoController : ControllerBase
     {
         private readonly PetPhotoService _petPhotoService;
-        private readonly IFileService _fileService;
         private readonly IMapper _mapper;
         public PetPhotoController(PetPhotoService petPhotoService,
-            IFileService fileService,
             IMapper mapper)
         {
-            _petPhotoService = petPhotoService ?? throw new ArgumentException(nameof(petPhotoService));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
+            _petPhotoService = petPhotoService 
+                ?? throw new ArgumentException(nameof(petPhotoService));
+            _mapper = mapper 
+                ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        [HttpPost("[action]")]
-        public async Task<ActionResult<PetPhotoReponse>> AddPetPhotoAsync
-            ([FromForm] Guid petId,
-            [FromForm] Guid profileId,
-            [Required] IFormFile file, CancellationToken cancellationToken)
-        {
-            if (file.Length == 0)
-            {
-                return BadRequest("Нет данных файла.");
-            }
-
-            var url = await _fileService.UploadPhotoAsync(file, cancellationToken);
-            var photo = new PetPhoto(Guid.NewGuid(), url, petId, profileId);
-            var response = await _petPhotoService.AddPetPhotoAsync(photo, cancellationToken);
-            return _mapper.Map<PetPhotoReponse>(response);
-        }
-
-
-        [HttpPost("[action]")]
-        public async Task<ActionResult<PetPhotoReponse>> AddAndSetPetPhotoAsync
-            ([FromForm] Guid petId,
-            [FromForm] Guid profileId,
-            [Required] IFormFile file, CancellationToken cancellationToken)
-        {
-            if (file.Length == 0)
-            {
-                return BadRequest("Нет данных файла.");
-            }
-
-            var url = await _fileService.UploadPhotoAsync(file, cancellationToken);
-            var photo = new PetPhoto(Guid.NewGuid(), url, petId, profileId);
-            var response = await _petPhotoService.AddAndSetPetPhotoAsync(photo, cancellationToken);
-            return _mapper.Map<PetPhotoReponse>(response);
-        }
-
+        /// <summary>
+        /// Удаляет фотографию питомца по идентификатору
+        /// </summary>
+        /// <param name="photoId">Идентификатор фотографии</param>
+        /// <param name="cancellationToken">Токен отмены</param>
         [HttpDelete("[action]")]
-        public async Task DeletePetPhotoAsync(Guid photoId, CancellationToken cancellationToken)
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task DeletePetPhotoAsync
+            (Guid photoId, CancellationToken cancellationToken)
         {
-            var path = await _petPhotoService.DeletePetPhotoAsync(photoId, cancellationToken);
-            _fileService.DeleteFile(path);
+           await _petPhotoService.DeletePetPhotoAsync(photoId, cancellationToken);
         }
 
+        /// <summary>
+        ///  Удаляет все фотографии питомца
+        /// </summary>
+        /// <param name="petId">Идентификатор питомца</param>
+        /// <param name="profileId">Идентификатор профиля пользователя</param>
+        /// <param name="cancellationToken">Токен отмены</param>
         [HttpDelete("[action]")]
-        public async Task DeleteAllPetPhotosAsync(Guid petId, Guid profileId, CancellationToken cancellationToken)
+        [ProducesResponseType(200)]
+        [ProducesResponseType(500)]
+        public async Task DeleteAllPetPhotosAsync
+            (Guid petId, Guid profileId, CancellationToken cancellationToken)
         {
-            var paths = await _petPhotoService.DeleteAllPetPhotosAsync(petId, profileId, cancellationToken);
-            _fileService.DeleteFiles(paths);
+            await _petPhotoService.DeleteAllPetPhotosAsync(petId, profileId, cancellationToken);
         }
 
+        /// <summary>
+        /// Возвращает фотографию питомца по идентификатору
+        /// </summary>
+        /// <param name="photoId">Идентификатор фотографии</param>
+        /// <param name="cancellationToken">Токен отмены</param>
         [HttpGet("[action]")]
-        public async Task<PetPhotoReponse> GetPetPhotoByIdAsync(Guid id, CancellationToken cancellationToken)
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<PetPhotoReponse> GetPetPhotoByIdAsync
+            (Guid photoId, CancellationToken cancellationToken)
         {
-            var photo = await _petPhotoService.GetPetPhotoByIdAsync(id, cancellationToken);
+            var photo = await _petPhotoService.GetPetPhotoByIdAsync(photoId, cancellationToken);
             return _mapper.Map<PetPhotoReponse>(photo);
         }
 
+        /// <summary>
+        ///  Возвращает главную фотографию питомца
+        /// </summary>
+        /// <param name="petId">Идентификатор питомца</param>
+        /// <param name="profileId">Идентификатор профиля пользователя</param>
+        /// <param name="cancellationToken">Токен отмены</param>
         [HttpGet("[action]")]
-        public async Task<PetPhotoReponse?> GetMainPetPhotoAsync(Guid petId, Guid profileId, CancellationToken cancellationToken)
+        [ProducesResponseType(200)]
+        [ProducesResponseType(500)]
+        public async Task<PetPhotoReponse?> GetMainPetPhotoAsync
+            (Guid petId, Guid profileId, CancellationToken cancellationToken)
         {
             var photo = await _petPhotoService.FindMainPetPhotoAsync(petId, profileId, cancellationToken);
             return _mapper.Map<PetPhotoReponse>(photo);
         }
 
-        [HttpGet("[action]")]
-        public async IAsyncEnumerable<PetPhotoReponse> BySearchAsync(Guid petId, Guid profileId, [EnumeratorCancellation] CancellationToken cancellationToken)
+        /// <summary>
+        /// Добавляет и устанавливает главную фотографию питомца
+        /// </summary>
+        /// <param name="request">Модель запроса</param>
+        /// <param name="cancellationToken">Токен отмены</param>
+        [HttpPost("[action]")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<PetPhotoReponse>> AddAndSetPetPhotoAsync
+            ([FromBody] AddPetPhotoRequest request, CancellationToken cancellationToken)
         {
-            await foreach (var photo in _petPhotoService.BySearchAsync(petId, profileId, cancellationToken))
-            {
-                var photoResponse = _mapper.Map<PetPhotoReponse>(photo);
-                yield return photoResponse;
-            }
+            var photo = _mapper.Map<PetPhoto>(request);
+            var response = await _petPhotoService.AddAndSetPetPhotoAsync(photo, cancellationToken);
+            return _mapper.Map<PetPhotoReponse>(response);
         }
 
+        /// <summary>
+        /// Добавляет фотографию питомца
+        /// </summary>
+        /// <param name="request">Модлеь запроса</param>
+        /// <param name="cancellationToken">Токен отмены</param>
         [HttpPost("[action]")]
-        public async Task<PetPhotoReponse> SetMainPetPhotoAsync([FromBody] PetMainPhotoRequest request, CancellationToken cancellationToken)
+        [ProducesResponseType(200)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<PetPhotoReponse>> AddPetPhotoAsync
+            ([FromBody] AddPetPhotoRequest request, CancellationToken cancellationToken)
         {
-            var (photo, oldFilePath) = await _petPhotoService
+            var photo = _mapper.Map<PetPhoto>(request);
+            var response = await _petPhotoService.AddPetPhotoAsync(photo, cancellationToken);
+            return _mapper.Map<PetPhotoReponse>(response);
+        }
+
+        /// <summary>
+        /// Устанавливает главную фотографию питомца
+        /// </summary>
+        /// <param name="request">Модель запроса</param>
+        /// <param name="cancellationToken">Токен отмены</param>
+        [HttpPost("[action]")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<PetPhotoReponse> SetMainPetPhotoAsync
+            ([FromBody] PetMainPhotoRequest request, CancellationToken cancellationToken)
+        {
+            var photo = await _petPhotoService
                 .SetMainPetPhotoAsync(request.PetId, request.ProfileId, request.PhotoId, cancellationToken);
-            _fileService.DeleteFile(oldFilePath);
             return _mapper.Map<PetPhotoReponse>(photo);
+        }
+
+        /// <summary>
+        /// Возвращает все фотографии питомца
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="cancellationToken">Токен отмены</param>
+        [HttpPost("[action]")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(500)]
+        public async Task<List<PetPhotoReponse>> BySearchAsync
+            ([FromBody] PetPhotoBySearchRequest request, CancellationToken cancellationToken)
+        {
+            var options = _mapper.Map<PaginationOptions>(request.Pagination);
+            var photos = await _petPhotoService.BySearchAsync
+                (request.PetId, request.ProfileId, options, cancellationToken);
+            return _mapper.Map<List<PetPhotoReponse>>(photos);
         }
     }
 }

@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServicePhoto.DataEntityFram
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServicePhoto.Domain", "ServicePhoto.Domain\ServicePhoto.Domain.csproj", "{0DD60254-8A05-4FB1-AF45-674F36BCA272}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServicePhoto.FileStorage", "Infrastructure\ServicePhoto.FileStorage\ServicePhoto.FileStorage.csproj", "{A96A7655-32F0-4D37-B70D-74560580F008}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,10 @@ Global
 		{0DD60254-8A05-4FB1-AF45-674F36BCA272}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0DD60254-8A05-4FB1-AF45-674F36BCA272}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0DD60254-8A05-4FB1-AF45-674F36BCA272}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A96A7655-32F0-4D37-B70D-74560580F008}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A96A7655-32F0-4D37-B70D-74560580F008}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A96A7655-32F0-4D37-B70D-74560580F008}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A96A7655-32F0-4D37-B70D-74560580F008}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -38,6 +44,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{58EE4B5C-B04E-416A-91E6-FDC63C19299F} = {E049B182-FD5A-4A1E-9FC5-595891F095C9}
 		{4D8C7658-7546-4885-B741-FA44A8663980} = {1141BBDF-F4F0-4847-BABF-93A449FEB7F2}
+		{A96A7655-32F0-4D37-B70D-74560580F008} = {1141BBDF-F4F0-4847-BABF-93A449FEB7F2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {148A5BD7-39FA-4FF8-A1A9-6C1D12C063C5}
