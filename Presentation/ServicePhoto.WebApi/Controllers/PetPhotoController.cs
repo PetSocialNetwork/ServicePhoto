@@ -33,7 +33,7 @@ namespace ServicePhoto.WebApi.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
         public async Task DeletePetPhotoAsync
-            (Guid photoId, CancellationToken cancellationToken)
+            ([FromQuery] Guid photoId, CancellationToken cancellationToken)
         {
            await _petPhotoService.DeletePetPhotoAsync(photoId, cancellationToken);
         }
@@ -48,7 +48,7 @@ namespace ServicePhoto.WebApi.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(500)]
         public async Task DeleteAllPetPhotosAsync
-            (Guid petId, Guid profileId, CancellationToken cancellationToken)
+            ([FromQuery] Guid petId, [FromQuery] Guid profileId, CancellationToken cancellationToken)
         {
             await _petPhotoService.DeleteAllPetPhotosAsync(petId, profileId, cancellationToken);
         }
@@ -79,7 +79,7 @@ namespace ServicePhoto.WebApi.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(500)]
         public async Task<PetPhotoReponse?> GetMainPetPhotoAsync
-            (Guid petId, Guid profileId, CancellationToken cancellationToken)
+            ([FromQuery] Guid petId, [FromQuery] Guid profileId, CancellationToken cancellationToken)
         {
             var photo = await _petPhotoService.FindMainPetPhotoAsync(petId, profileId, cancellationToken);
             return _mapper.Map<PetPhotoReponse>(photo);
@@ -145,7 +145,7 @@ namespace ServicePhoto.WebApi.Controllers
         public async Task<List<PetPhotoReponse>> BySearchAsync
             ([FromBody] PetPhotoBySearchRequest request, CancellationToken cancellationToken)
         {
-            var options = _mapper.Map<PaginationOptions>(request.Pagination);
+            var options = _mapper.Map<PaginationOptions>(request.Options);
             var photos = await _petPhotoService.BySearchAsync
                 (request.PetId, request.ProfileId, options, cancellationToken);
             return _mapper.Map<List<PetPhotoReponse>>(photos);

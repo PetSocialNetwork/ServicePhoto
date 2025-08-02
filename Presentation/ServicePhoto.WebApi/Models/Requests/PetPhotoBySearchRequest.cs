@@ -5,6 +5,6 @@ namespace ServicePhoto.WebApi.Models.Requests
     {
         public Guid PetId { get; set; }
         public Guid ProfileId { get; set; }
-        public PaginationRequest Pagination { get; set; }
+        public PaginationRequest Options { get; set; }
     }
 }

@@ -24,11 +24,8 @@ namespace ServicePhoto.WebApi.Extensions
         public static void ConfigureSettings
             (this IServiceCollection services, IConfiguration configuration)
         {
-            var settings = configuration
-               .GetRequiredSection("FileSettings")
-               .Get<FileSettings>()
-               ?? throw new InvalidOperationException("Не заданы настройки конфигурациия для FileSettings.");
-            services.AddSingleton(settings);
+            services.Configure<FileSettings>
+                (configuration.GetRequiredSection("FileSettings"));
         }
 
         public static void ConfigureMiddleware(this WebApplication app, IWebHostEnvironment env)
@@ -54,12 +51,12 @@ namespace ServicePhoto.WebApi.Extensions
 
         private static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddValidatorsFromAssemblyContaining<Program>();
             services.AddControllers(options =>
             {
                 options.Filters.Add<CentralizedExceptionHandlingFilter>();
             });
 
-            services.AddValidatorsFromAssemblyContaining<Program>();
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(options =>
             {

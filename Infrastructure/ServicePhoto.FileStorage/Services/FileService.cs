@@ -10,9 +10,9 @@ namespace ServicePhoto.FileStorage.Services
         private readonly string _photoBaseUrl;
         private readonly string _photoDirectory;
 
-        public FileService(IOptionsSnapshot<FileSettings> settings)
+        public FileService(IOptions<FileSettings> settings)
         {
-            _webRootPath = settings.Value.WebRootPath 
+            _webRootPath = settings.Value.WebRootPath
                 ?? throw new ArgumentException(nameof(settings.Value.WebRootPath));
             _photoBaseUrl = settings.Value.PhotoBaseUrl
                 ?? throw new ArgumentException(nameof(settings.Value.PhotoBaseUrl));

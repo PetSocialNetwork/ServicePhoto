@@ -112,7 +112,7 @@ namespace ServicePhoto.WebApi.Controllers
         public async Task<List<PersonalPhotoResponse>> BySearchAsync
             ([FromBody] PersonalPhotoBySearchRequest request, CancellationToken cancellationToken)
         {
-            var options = _mapper.Map<PaginationOptions>(request.Pagination);
+            var options = _mapper.Map<PaginationOptions>(request.Options);
             var photos = await _personalPhotoService.BySearchPhotosAsync
                 (request.ProfileId, options, cancellationToken);
             return _mapper.Map<List<PersonalPhotoResponse>>(photos);
